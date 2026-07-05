@@ -1,0 +1,64 @@
+class Product:
+    def __init__(self, product_id, product_name, category):
+        self.product_id = product_id
+        self.product_name = product_name
+        self.category = category
+
+    # Defining how products are compared (useful for sorting/binary search)
+    def __lt__(self, other):
+        return self.product_id < other.product_id
+        
+    def __repr__(self):
+        return f"Product({self.product_id}, '{self.product_name}')"
+
+# 1. Linear Search Implementation
+def linear_search(products, target_id):
+    """Searches for a product by ID by checking every element."""
+    for i, product in enumerate(products):
+        if product.product_id == target_id:
+            return product
+    return None
+
+# 2. Binary Search Implementation
+def binary_search(sorted_products, target_id):
+    """Searches for a product by ID by repeatedly dividing the search interval in half."""
+    left = 0
+    right = len(sorted_products) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        mid_product = sorted_products[mid]
+        
+        if mid_product.product_id == target_id:
+            return mid_product
+        elif mid_product.product_id < target_id:
+            left = mid + 1
+        else:
+            right = mid - 1
+            
+    return None
+
+# --- Setting up the data ---
+
+# Unsorted array for Linear Search
+products_array = [
+    Product(105, "Wireless Mouse", "Electronics"),
+    Product(101, "Laptop Backpack", "Accessories"),
+    Product(109, "Mechanical Keyboard", "Electronics"),
+    Product(102, "Coffee Mug", "Home"),
+    Product(107, "Desk Lamp", "Home")
+]
+
+# Sorted array for Binary Search (sorted by product_id)
+# In a real app, you might maintain a sorted index or sort upon database retrieval.
+sorted_products_array = sorted(products_array, key=lambda p: p.product_id)
+
+
+# --- Testing the algorithms ---
+print("Linear Search Results:")
+print("Finding 109:", linear_search(products_array, 109))
+print("Finding 999:", linear_search(products_array, 999))
+
+print("\nBinary Search Results:")
+print("Finding 102:", binary_search(sorted_products_array, 102))
+print("Finding 999:", binary_search(sorted_products_array, 999))
