@@ -1,0 +1,96 @@
+1. Set Up a Spring Project
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.library</groupId>
+    <artifactId>LibraryManagement</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <!-- Spring Context (which automatically includes Core, Beans, and Expression Language) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.27</version> <!-- You can adjust version as needed -->
+        </dependency>
+    </dependencies>
+</project>
+3. Define Service and Repository Classes (Done before Step 2 for clarity)
+package com.library.repository;
+
+public class BookRepository {
+    
+    // A simple method to verify the repository is working
+    public void fetchBooks() {
+        System.out.println("BookRepository: Fetching books from the database...");
+    }
+}
+package com.library.service;
+
+import com.library.repository.BookRepository;
+
+public class BookService {
+    
+    private BookRepository bookRepository;
+
+    // Setter method used by Spring for Dependency Injection via XML
+    public void setBookRepository(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+
+    public void manageBooks() {
+        System.out.println("BookService: Managing library books...");
+        // Call the repository to prove injection worked
+        if (bookRepository != null) {
+            bookRepository.fetchBooks();
+        } else {
+            System.out.println("Error: BookRepository was not injected!");
+        }
+    }
+}
+2. Configure the Application Context
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 1. Define the BookRepository Bean -->
+    <bean id="bookRepository" class="com.library.repository.BookRepository" />
+
+    <!-- 2. Define the BookService Bean and inject the BookRepository -->
+    <bean id="bookService" class="com.library.service.BookService">
+        <!-- The 'name' refers to the setter 'setBookRepository', 'ref' refers to the bean id above -->
+        <property name="bookRepository" ref="bookRepository" />
+    </bean>
+
+</beans>
+4. Run the Application
+package com.library;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import com.library.service.BookService;
+
+public class Main {
+    public static void main(String[] args) {
+        
+        // 1. Load the Spring context from the XML configuration file
+        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+
+        // 2. Retrieve the BookService bean from the context using its ID
+        BookService bookService = (BookService) context.getBean("bookService");
+
+        // 3. Test the configuration
+        System.out.println("--- Starting Application Test ---");
+        bookService.manageBooks();
+        System.out.println("--- Application Test Finished ---");
+    }
+}
