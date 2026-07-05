@@ -1,0 +1,77 @@
+// Scenario 1: Discount for customers above 60
+DECLARE
+    -- Define a cursor to fetch customers and their loan details
+    CURSOR c_customer_loans IS
+        SELECT c.customer_id, c.age, l.loan_id, l.interest_rate
+        FROM customers c
+        JOIN loans l ON c.customer_id = l.customer_id;
+BEGIN
+    -- Iterate through the cursor
+    FOR v_record IN c_customer_loans LOOP
+        -- Check if the customer is older than 60
+        IF v_record.age > 60 THEN
+            -- Apply a 1% discount to the loan interest rate
+            UPDATE loans
+            SET interest_rate = interest_rate - 1
+            WHERE loan_id = v_record.loan_id;
+        END IF;
+    END LOOP;
+    
+    -- Save the changes
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Interest rate discounts applied successfully.');
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/
+Scenario 2: Promote customers to VIP status
+DECLARE
+    -- Define a cursor to fetch all customers
+    CURSOR c_customers IS
+        SELECT customer_id, balance
+        FROM customers;
+BEGIN
+    -- Iterate through all customers
+    FOR v_cust IN c_customers LOOP
+        -- Check if balance is strictly over $10,000
+        IF v_cust.balance > 10000 THEN
+            -- Update the VIP flag
+            UPDATE customers
+            SET is_vip = 'TRUE' 
+            WHERE customer_id = v_cust.customer_id;
+        END IF;
+    END LOOP;
+    
+    -- Save the changes
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('VIP statuses updated successfully.');
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/
+Scenario 3: Send reminders for loans due in 30 days
+DECLARE
+    -- Cursor to fetch loans due within the next 30 days
+    CURSOR c_due_loans IS
+        SELECT c.customer_name, l.loan_id, l.due_date
+        FROM customers c
+        JOIN loans l ON c.customer_id = l.customer_id
+        -- Filters for due dates between today and 30 days in the future
+        WHERE l.due_date BETWEEN SYSDATE AND (SYSDATE + 30);
+BEGIN
+    -- Ensure server output is visible
+    DBMS_OUTPUT.ENABLE;
+    
+    -- Iterate through the fetched records
+    FOR v_loan IN c_due_loans LOOP
+        -- Print a reminder message to the console
+        DBMS_OUTPUT.PUT_LINE('Reminder: Dear ' || v_loan.customer_name || 
+                             ', your loan (ID: ' || v_loan.loan_id || 
+                             ') is due on ' || TO_CHAR(v_loan.due_date, 'YYYY-MM-DD') || '.');
+    END LOOP;
+END;
+/
